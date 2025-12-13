@@ -9,22 +9,46 @@ document.addEventListener('DOMContentLoaded', () => {
         esperandoDecisao: null
     };
 
-    // Função para imprimir texto no terminal com efeito de digitação
-    function type(text, onComplete) {
-        let i = 0;
-        const speed = 15; // Velocidade da digitação
-        function typing() {
-            if (i < text.length) {
-                output.innerHTML += text.charAt(i);
-                i++;
-                output.scrollTop = output.scrollHeight;
-                setTimeout(typing, speed);
-            } else if (onComplete) {
-                onComplete();
-            }
+    // Função para imprimir texto no terminal com efeito de digitação (VERSÃO MELHORADA)
+function type(text, onComplete) {
+    const speed = 15; // Velocidade da digitação
+    const textNode = document.createTextNode('');
+    output.appendChild(textNode);
+
+    let i = 0;
+    function typing() {
+        if (i < text.length) {
+            textNode.nodeValue += text.charAt(i);
+            i++;
+            output.scrollTop = output.scrollHeight;
+            setTimeout(typing, speed);
+        } else if (onComplete) {
+            onComplete();
         }
-        typing();
     }
+    typing();
+}
+
+// Função para imprimir texto no terminal com efeito de digitação (VERSÃO MELHORADA)
+function type(text, onComplete) {
+    const speed = 15; // Velocidade da digitação
+    const textNode = document.createTextNode('');
+    output.appendChild(textNode);
+
+    let i = 0;
+    function typing() {
+        if (i < text.length) {
+            textNode.nodeValue += text.charAt(i);
+            i++;
+            output.scrollTop = output.scrollHeight;
+            setTimeout(typing, speed);
+        } else if (onComplete) {
+            onComplete();
+        }
+    }
+    typing();
+}
+
 
     // Função para carregar e iniciar um caso
     async function carregarCaso(nomeCaso) {
