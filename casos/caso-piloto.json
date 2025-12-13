@@ -1,0 +1,27 @@
+{
+  "id": "caso-piloto",
+  "titulo": "Arquivo Piloto: O Eco na Estática",
+  "sinopse": "Um teste inicial do sistema de arquivos interativos.",
+  "arquivos": [
+    {
+      "tipo": "transcricao",
+      "nome": "relatorio_01.txt",
+      "conteudo": "LOG DE ARQUIVISTA: Sistema online. Carregando arquivo de diagnóstico...\nIsso não é um caso real, mas um teste para garantir que você está pronto para o que vem a seguir."
+    },
+    {
+      "tipo": "imagem",
+      "nome": "diagnostico.jpg",
+      "descricao": "Imagem de diagnóstico do sistema de visualização. Se você vê esta imagem, o sistema está operacional."
+    },
+    {
+      "tipo": "audio",
+      "nome": "estatica.mp3",
+      "descricao": "Áudio de diagnóstico do sistema de som. Se você ouve esta estática, os fones de ouvido são recomendados para os casos reais."
+    },
+    {
+      "tipo": "transcricao",
+      "nome": "relatorio_final.txt",
+      "conteudo": "Diagnóstico completo. Todos os sistemas operacionais.\nO terminal está pronto para receber os verdadeiros arquivos.\n\nBem-vindo ao Sombras da História.\n\nDigite 'menu' para voltar à tela inicial."
+    }
+  ]
+}
