@@ -5,16 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sombras da História: Arquivos Interativos</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="imagens/favicon.png"> <!-- Opcional: Se você tiver um ícone -->
 </head>
 <body>
-    <div id="terminal">
+
+    <!-- Tela de Abertura / Boot -->
+    <div id="boot-screen">
+        <pre id="boot-text"></pre>
+    </div>
+
+    <!-- Terminal Principal do Jogo (escondido no início) -->
+    <div id="terminal" class="hidden">
         <div id="output"></div>
         <div id="input-line">
             <span id="prompt">&gt;</span>
             <input type="text" id="input" autofocus>
         </div>
     </div>
+
+    <!-- Áudio da Digitação -->
+    <audio id="typing-sound" src="audios/terminal-typing.mp3" preload="auto"></audio>
+
     <script src="game.js"></script>
 </body>
 </html>
