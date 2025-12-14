@@ -1,30 +1,63 @@
-// Arquivo: game.js (VERSÃO FINAL - "DETETIVE DE IMAGENS")
+// Arquivo: game.js (VERSÃO FINAL COM TELA DE ABERTURA)
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- ELEMENTOS DO HTML ---
+    const bootScreen = document.getElementById('boot-screen');
+    const bootText = document.getElementById('boot-text');
+    const terminal = document.getElementById('terminal');
     const output = document.getElementById('output');
     const input = document.getElementById('input');
+    const typingSound = document.getElementById('typing-sound');
+
+    // --- ESTADO DO JOGO ---
     let estadoJogo = {
         casoAtual: null,
         cenaAtual: 0,
-        processando: false // Trava para evitar múltiplos Enters
+        processando: false
     };
 
-    // --- FUNÇÕES PRINCIPAIS ---
+    // --- LÓGICA DA TELA DE ABERTURA ---
+    const bootSequenceText = `>>> ACESSO RESTRITO: TERMINAL 'SOMBRAS' <<<\n>>> CARREGANDO PROTOCOLO DE INVESTIGAÇÃO...\n--------------------------------------------------\nOS ARQUIVOS FORAM ABERTOS.\nO QUE FOI VISTO NÃO PODE SER 'DESVISTO'.\n\nDESVENDE ESTE MISTÉRIO.`;
 
-    // Função para adicionar HTML ao output de forma segura
+    function runBootSequence() {
+        let i = 0;
+        // Tenta tocar o som, mas não impede a execução se o navegador bloquear
+        typingSound.play().catch(() => console.log("Autoplay de áudio bloqueado. O usuário precisa interagir com a página primeiro."));
+
+        function bootTyping() {
+            if (i < bootSequenceText.length) {
+                bootText.textContent += bootSequenceText.charAt(i);
+                i++;
+                setTimeout(bootTyping, 50);
+            } else {
+                typingSound.pause();
+                setTimeout(showTerminal, 2000); // Espera 2s antes de mostrar o terminal
+            }
+        }
+        bootTyping();
+    }
+
+    function showTerminal() {
+        bootScreen.classList.add('hidden');
+        terminal.classList.remove('hidden');
+        input.focus();
+        exibirMenu();
+    }
+
+    // --- FUNÇÕES PRINCIPAIS DO JOGO ---
+
     function appendHtml(htmlString) {
         const div = document.createElement('div');
         div.innerHTML = htmlString.trim();
         while (div.firstChild) {
             output.appendChild(div.firstChild);
         }
+        output.scrollTop = output.scrollHeight;
     }
 
-    // Função para imprimir texto no terminal com efeito de digitação
     function type(text, onComplete) {
         const speed = 15;
         let i = 0;
-
         function typing() {
             if (i < text.length) {
                 output.innerHTML += text.charAt(i);
@@ -38,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         typing();
     }
 
-    // Função para carregar e iniciar um caso
     async function carregarCaso(nomeCaso) {
         if (estadoJogo.processando) return;
         estadoJogo.processando = true;
@@ -50,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             estadoJogo.casoAtual = casoData;
             estadoJogo.cenaAtual = 0;
             
-            output.innerHTML = ''; // Limpa o terminal
+            output.innerHTML = '';
             type(`Carregando arquivo: ${casoData.titulo}...\n\n`, () => {
                 estadoJogo.processando = false;
                 processarCena();
@@ -61,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Função para processar a cena atual do caso
     function processarCena() {
         if (estadoJogo.processando || !estadoJogo.casoAtual) return;
         
@@ -78,13 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
         switch (cena.tipo) {
             case 'transcricao':
                 htmlToAdd = `\n[Transcrição: ${cena.nome}]\n${cena.conteudo}\n`;
-                type(htmlToAdd, () => {
-                    finalizarProcessamentoCena();
-                });
-                return; // Retorna para não executar o appendHtml abaixo
+                type(htmlToAdd, finalizarProcessamentoCena);
+                return;
             
             case 'imagem':
-                // Remove a extensão do arquivo para testar ambas
                 const nomeBaseImagem = cena.nome.split('.')[0];
                 htmlToAdd = `\n[Visualizando Imagem: ${cena.nome}]\n<img src="imagens/${nomeBaseImagem}.png" onerror="this.onerror=null;this.src='imagens/${nomeBaseImagem}.jpg';" alt="${cena.descricao}" class="imagem-container">\n<p>${cena.descricao}</p>\n`;
                 break;
@@ -101,11 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function finalizarProcessamentoCena() {
         estadoJogo.cenaAtual++;
         type("\nPressione ENTER para continuar...\n", () => {
-            estadoJogo.processando = false; // Libera para o próximo Enter
+            estadoJogo.processando = false;
         });
     }
 
-    // Função para lidar com o input do usuário
     function handleInput() {
         const command = input.value.trim().toLowerCase();
         appendHtml(`<span class="comando-usuario">&gt; ${input.value}</span>\n`);
@@ -121,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 exibirMenu();
             }
         }
-        output.scrollTop = output.scrollHeight;
     }
     
     function exibirMenu() {
@@ -137,5 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    exibirMenu();
+    // --- INÍCIO DO PROCESSO ---
+    runBootSequence();
 });
