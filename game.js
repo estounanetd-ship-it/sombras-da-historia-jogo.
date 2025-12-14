@@ -1,4 +1,4 @@
-// Arquivo: game.js
+// Arquivo: game.js (VERSÃO FINAL CORRIGIDA)
 
 document.addEventListener('DOMContentLoaded', () => {
     const output = document.getElementById('output');
@@ -9,62 +9,52 @@ document.addEventListener('DOMContentLoaded', () => {
         esperandoDecisao: null
     };
 
-    // Função para imprimir texto no terminal com efeito de digitação (VERSÃO MELHORADA)
-function type(text, onComplete) {
-    const speed = 15; // Velocidade da digitação
-    const textNode = document.createTextNode('');
-    output.appendChild(textNode);
+    // --- FUNÇÕES PRINCIPAIS ---
 
-    let i = 0;
-    function typing() {
-        if (i < text.length) {
-            output.innerHTML += text.charAt(i); // <<--- A NOVA LINHA CORRIGIDA
-            i++;
-            output.scrollTop = output.scrollHeight;
-            setTimeout(typing, speed);
-        } else if (onComplete) {
-            onComplete();
+    // Função para imprimir texto no terminal com efeito de digitação
+    function type(text, onComplete) {
+        // Se o texto contiver HTML, insira diretamente para evitar quebras.
+        if (text.includes('<') && text.includes('>')) {
+            output.innerHTML += text;
+            if (onComplete) onComplete();
+            return;
         }
-    }
-    typing();
-}
 
-// Função para imprimir texto no terminal com efeito de digitação (VERSÃO MELHORADA)
-function type(text, onComplete) {
-    const speed = 15; // Velocidade da digitação
-    const textNode = document.createTextNode('');
-    output.appendChild(textNode);
+        const speed = 15;
+        const textNode = document.createTextNode('');
+        const span = document.createElement('span');
+        span.appendChild(textNode);
+        output.appendChild(span);
 
-    let i = 0;
-    function typing() {
-        if (i < text.length) {
-            textNode.nodeValue += text.charAt(i);
-            i++;
-            output.scrollTop = output.scrollHeight;
-            setTimeout(typing, speed);
-        } else if (onComplete) {
-            onComplete();
+        let i = 0;
+        function typing() {
+            if (i < text.length) {
+                textNode.nodeValue += text.charAt(i);
+                i++;
+                output.scrollTop = output.scrollHeight;
+                setTimeout(typing, speed);
+            } else if (onComplete) {
+                onComplete();
+            }
         }
+        typing();
     }
-    typing();
-}
 
-
-    // Função para carregar e iniciar um caso
+    // Função para carregar e iniciar um caso a partir de um arquivo JSON
     async function carregarCaso(nomeCaso) {
         try {
             const response = await fetch(`casos/${nomeCaso}.json`);
             if (!response.ok) throw new Error(`Arquivo do caso "${nomeCaso}" não encontrado.`);
             const casoData = await response.json();
+            
             estadoJogo.casoAtual = casoData;
             estadoJogo.cenaAtual = 0;
             estadoJogo.esperandoDecisao = null;
+            
             output.innerHTML = ''; // Limpa o terminal
-            type(`Carregando arquivo: ${casoData.titulo}...\n\n`, () => {
-                processarCena();
-            });
+            type(`Carregando arquivo: ${casoData.titulo}...\n\n`, processarCena);
         } catch (error) {
-            type(`Erro: ${error.message}\n`);
+            type(`\nErro: ${error.message}\n`);
         }
     }
 
@@ -84,6 +74,7 @@ function type(text, onComplete) {
                 htmlToAdd = `\n[Transcrição: ${cena.nome}]\n${cena.conteudo}\n`;
                 break;
             case 'imagem':
+                // Lembre-se de ajustar o .jpg para .png se necessário no seu JSON
                 htmlToAdd = `\n[Visualizando Imagem: ${cena.nome}]\n<img src="imagens/${cena.nome}" alt="${cena.descricao}" class="imagem-container">\n<p>${cena.descricao}</p>\n`;
                 break;
             case 'audio':
@@ -93,23 +84,8 @@ function type(text, onComplete) {
         
         type(htmlToAdd, () => {
             estadoJogo.cenaAtual++;
-            // Verifica se a próxima cena é uma decisão
-            const proximaCena = estadoJogo.casoAtual.arquivos[estadoJogo.cenaAtual];
-            if (proximaCena && proximaCena.tipo === 'decisao') {
-                apresentarDecisao(proximaCena);
-            } else {
-                type("\nPressione ENTER para continuar...\n");
-            }
+            type("\nPressione ENTER para continuar...\n");
         });
-    }
-    
-    // Função para apresentar uma decisão ao jogador
-    function apresentarDecisao(decisao) {
-        estadoJogo.esperandoDecisao = decisao;
-        let textoDecisao = `\n[PONTO DE DECISÃO]\n${decisao.pergunta}\n`;
-        textoDecisao += `  A) ${decisao.opcao_A}\n`;
-        textoDecisao += `  B) ${decisao.opcao_B}\n`;
-        type(textoDecisao);
     }
 
     // Função para lidar com o input do usuário
@@ -118,29 +94,27 @@ function type(text, onComplete) {
         output.innerHTML += `<span class="comando-usuario">&gt; ${input.value}</span>\n`;
         input.value = '';
 
-        if (estadoJogo.esperandoDecisao) {
-            if (command === 'a' || command === 'b') {
-                const destino = command === 'a' ? estadoJogo.esperandoDecisao.leva_para_A : estadoJogo.esperandoDecisao.leva_para_B;
-                estadoJogo.cenaAtual = estadoJogo.casoAtual.arquivos.findIndex(c => c.id_cena === destino);
-                estadoJogo.esperandoDecisao = null;
-                processarCena();
-            } else {
-                type("Comando inválido. Escolha 'A' ou 'B'.\n");
-            }
-        } else if (estadoJogo.casoAtual) {
-            processarCena(); // Pressionar ENTER continua
+        if (estadoJogo.casoAtual) {
+            processarCena(); // Pressionar ENTER continua o caso
         } else {
             // Comandos do menu principal
             if (command.startsWith('abrir ')) {
                 const nomeCaso = command.split(' ')[1];
-                carregarCaso(nomeCaso);
+                if (nomeCaso) {
+                    carregarCaso(nomeCaso);
+                } else {
+                    type("\nComando inválido. Especifique um nome de caso. Ex: abrir caso-piloto\n");
+                }
+            } else if (command === 'menu' || command === 'ajuda') {
+                 exibirMenu();
             } else {
-                exibirMenu();
+                type("\nComando desconhecido. Digite 'ajuda' para ver os comandos.\n");
             }
         }
         output.scrollTop = output.scrollHeight;
     }
     
+    // Função para exibir o menu inicial
     function exibirMenu() {
         type("\n===== TERMINAL DE ARQUIVOS 'SOMBRAS DA HISTÓRIA' =====\n");
         type("Bem-vindo, Arquivista.\n");
@@ -148,13 +122,14 @@ function type(text, onComplete) {
         type("Exemplo: abrir caso-piloto\n");
     }
 
+    // --- EVENT LISTENERS ---
+
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             handleInput();
         }
     });
 
-    // Inicia o jogo
+    // --- INÍCIO DO JOGO ---
     exibirMenu();
 });
-
