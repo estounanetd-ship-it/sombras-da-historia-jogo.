@@ -1,4 +1,4 @@
-// Arquivo: game.js (VERSÃO FINAL COM TELA DE ABERTURA REATIVADA)
+// Arquivo: game.js (VERSÃO FINAL COM COMANDO 'AJUDA')
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- ELEMENTOS DO HTML ---
@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function runBootSequence() {
         let i = 0;
-        // Tenta tocar o som, mas não impede a execução se o navegador bloquear
-        typingSound.play().catch(() => console.log("Autoplay de áudio bloqueado. O usuário precisa interagir com a página primeiro."));
+        typingSound.play().catch(() => console.log("Autoplay de áudio bloqueado."));
 
         function bootTyping() {
             if (i < bootSequenceText.length) {
@@ -31,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(bootTyping, 50);
             } else {
                 typingSound.pause();
-                setTimeout(showTerminal, 2000); // Espera 2s antes de mostrar o terminal
+                setTimeout(showTerminal, 2000);
             }
         }
         bootTyping();
@@ -132,14 +131,33 @@ document.addEventListener('DOMContentLoaded', () => {
         estadoJogo.processando = false;
     }
 
+    // --- FUNÇÕES DE MENU E AJUDA ---
+
     function exibirMenu() {
         output.innerHTML = '';
         let menuText = `\n===== TERMINAL DE ARQUIVOS 'SOMBRAS DA HISTÓRIA' =====\n`;
-        menuText += "Bem-vindo, Arquivista.\n";
+        menuText += "Bem-vindo, Arquivista.\n\n";
         menuText += "Use o comando 'abrir [nome_do_caso]' para começar.\n";
-        menuText += "Exemplo: abrir caso-piloto\n";
+        menuText += "Exemplo: abrir caso-piloto\n\n";
+        menuText += "Se quiser saber como jogar, digite 'ajuda' e tecle Enter.\n";
         type(menuText);
     }
+
+    function exibirAjuda() {
+        output.innerHTML = '';
+        let ajudaText = `\n===== COMO JOGAR =====\n\n`;
+        ajudaText += "Você é um Arquivista. Sua missão é investigar casos misteriosos analisando as pistas apresentadas neste terminal.\n\n";
+        ajudaText += "1.  **COMEÇANDO UM CASO:**\n";
+        ajudaText += "    No menu principal, digite 'abrir' seguido do nome do caso (ex: 'abrir caso-piloto').\n\n";
+        ajudaText += "2.  **AVANÇANDO NA HISTÓRIA:**\n";
+        ajudaText += "    Uma vez dentro de um caso, simplesmente pressione a tecla ENTER para avançar para a próxima pista (seja um texto, uma imagem ou um áudio).\n\n";
+        ajudaText += "3.  **VOLTANDO AO MENU:**\n";
+        ajudaText += "    A qualquer momento, você pode digitar 'menu' para abandonar o caso atual e voltar à tela principal.\n\n";
+        ajudaText += "Boa investigação, Arquivista.\n";
+        appendHtml(ajudaText); // Usamos appendHtml para texto estático, é mais rápido
+    }
+
+    // --- PROCESSADOR DE COMANDOS ---
 
     function handleInput() {
         const command = input.value.trim().toLowerCase();
@@ -153,6 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 appendHtml("Comando 'abrir' incompleto. Especifique o nome do caso.\n");
             }
+        } else if (command === 'ajuda' || command === 'como jogar') {
+            exibirAjuda();
+        } else if (command === 'menu') {
+            estadoJogo.casoAtual = null; // Abandona o caso atual
+            exibirMenu();
         } else if (estadoJogo.casoAtual && !estadoJogo.processando) {
             processarCena();
         } else {
