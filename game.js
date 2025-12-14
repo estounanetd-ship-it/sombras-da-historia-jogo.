@@ -1,15 +1,50 @@
-// Arquivo: game.js (VERSÃO FINAL REVISADA E CORRIGIDA)
+// Arquivo: game.js (VERSÃO FINAL COM TELA DE ABERTURA REATIVADA)
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- ELEMENTOS DO HTML ---
+    const bootScreen = document.getElementById('boot-screen');
+    const bootText = document.getElementById('boot-text');
+    const terminal = document.getElementById('terminal');
     const output = document.getElementById('output');
     const input = document.getElementById('input');
+    const typingSound = document.getElementById('typing-sound');
+
+    // --- ESTADO DO JOGO ---
     let estadoJogo = {
         casoAtual: null,
         cenaAtual: 0,
         processando: false
     };
 
-    // --- FUNÇÕES DE RENDERIZAÇÃO ---
+    // --- LÓGICA DA TELA DE ABERTURA ---
+    const bootSequenceText = `>>> ACESSO RESTRITO: TERMINAL 'SOMBRAS' <<<\n>>> CARREGANDO PROTOCOLO DE INVESTIGAÇÃO...\n--------------------------------------------------\nOS ARQUIVOS FORAM ABERTOS.\nO QUE FOI VISTO NÃO PODE SER 'DESVISTO'.\n\nDESVENDE ESTE MISTÉRIO.`;
+
+    function runBootSequence() {
+        let i = 0;
+        // Tenta tocar o som, mas não impede a execução se o navegador bloquear
+        typingSound.play().catch(() => console.log("Autoplay de áudio bloqueado. O usuário precisa interagir com a página primeiro."));
+
+        function bootTyping() {
+            if (i < bootSequenceText.length) {
+                bootText.textContent += bootSequenceText.charAt(i);
+                i++;
+                setTimeout(bootTyping, 50);
+            } else {
+                typingSound.pause();
+                setTimeout(showTerminal, 2000); // Espera 2s antes de mostrar o terminal
+            }
+        }
+        bootTyping();
+    }
+
+    function showTerminal() {
+        bootScreen.classList.add('hidden');
+        terminal.classList.remove('hidden');
+        input.focus();
+        exibirMenu();
+    }
+
+    // --- FUNÇÕES PRINCIPAIS DO JOGO ---
 
     function appendHtml(htmlString) {
         const div = document.createElement('div');
@@ -35,8 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         typing();
     }
-
-    // --- LÓGICA PRINCIPAL DO JOGO ---
 
     async function carregarCaso(nomeCaso) {
         if (estadoJogo.processando) return;
@@ -108,14 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
         type(menuText);
     }
 
-    // --- PROCESSADOR DE COMANDOS ---
-
     function handleInput() {
         const command = input.value.trim().toLowerCase();
         appendHtml(`<span class="comando-usuario">&gt; ${input.value}</span>\n`);
         input.value = '';
 
-        // LÓGICA CORRIGIDA E SIMPLIFICADA
         if (command.startsWith('abrir ')) {
             const nomeCaso = command.split(' ')[1];
             if (nomeCaso) {
@@ -124,10 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 appendHtml("Comando 'abrir' incompleto. Especifique o nome do caso.\n");
             }
         } else if (estadoJogo.casoAtual && !estadoJogo.processando) {
-            // Se um caso está ativo, qualquer "Enter" avança a cena
             processarCena();
         } else {
-            // Se nenhum caso está ativo e o comando não é 'abrir', mostra o menu
             exibirMenu();
         }
     }
@@ -138,6 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- INÍCIO DO JOGO ---
-    exibirMenu();
+    // --- INÍCIO DO PROCESSO ---
+    runBootSequence();
 });
