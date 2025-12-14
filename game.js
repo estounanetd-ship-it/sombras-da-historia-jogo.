@@ -18,7 +18,7 @@ function type(text, onComplete) {
     let i = 0;
     function typing() {
         if (i < text.length) {
-            textNode.nodeValue += text.charAt(i);
+            output.innerHTML += text.charAt(i); // <<--- A NOVA LINHA CORRIGIDA
             i++;
             output.scrollTop = output.scrollHeight;
             setTimeout(typing, speed);
@@ -157,3 +157,4 @@ function type(text, onComplete) {
     // Inicia o jogo
     exibirMenu();
 });
+
