@@ -1,4 +1,4 @@
-// Arquivo: game.js (VERSÃO FINAL CORRIGIDA - Anti-travamento)
+// Arquivo: game.js (VERSÃO FINAL REVISADA E CORRIGIDA)
 
 document.addEventListener('DOMContentLoaded', () => {
     const output = document.getElementById('output');
@@ -9,11 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
         processando: false
     };
 
-    // --- FUNÇÕES PRINCIPAIS ---
+    // --- FUNÇÕES DE RENDERIZAÇÃO ---
 
     function appendHtml(htmlString) {
         const div = document.createElement('div');
-        // Usar innerHTML em um elemento temporário é mais seguro
         div.innerHTML = htmlString.trim();
         while (div.firstChild) {
             output.appendChild(div.firstChild);
@@ -26,8 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let i = 0;
         function typing() {
             if (i < text.length) {
-                // Usar innerHTML aqui é o que estava causando o problema de encoding.
-                // Vamos usar textContent para segurança.
                 output.innerHTML += text.charAt(i);
                 i++;
                 output.scrollTop = output.scrollHeight;
@@ -38,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         typing();
     }
+
+    // --- LÓGICA PRINCIPAL DO JOGO ---
 
     async function carregarCaso(nomeCaso) {
         if (estadoJogo.processando) return;
@@ -94,37 +93,43 @@ document.addEventListener('DOMContentLoaded', () => {
         finalizarProcessamentoCena();
     }
 
-    // ESTA É A FUNÇÃO CORRIGIDA QUE NÃO TRAVA O JOGO
     function finalizarProcessamentoCena() {
         estadoJogo.cenaAtual++;
         appendHtml("\nPressione ENTER para continuar...\n");
         estadoJogo.processando = false;
     }
 
-    function handleInput() {
-        const command = input.value.trim().toLowerCase();
-        appendHtml(`<span class="comando-usuario">&gt; ${input.value}</span>\n`);
-        input.value = '';
-
-        if (estadoJogo.casoAtual && !estadoJogo.processando) {
-            processarCena();
-        } else if (!estadoJogo.casoAtual) {
-            if (command.startsWith('abrir ')) {
-                const nomeCaso = command.split(' ')[1];
-                if (nomeCaso) carregarCaso(nomeCaso);
-            } else {
-                exibirMenu();
-            }
-        }
-    }
-    
     function exibirMenu() {
         output.innerHTML = '';
         let menuText = `\n===== TERMINAL DE ARQUIVOS 'SOMBRAS DA HISTÓRIA' =====\n`;
         menuText += "Bem-vindo, Arquivista.\n";
         menuText += "Use o comando 'abrir [nome_do_caso]' para começar.\n";
         menuText += "Exemplo: abrir caso-piloto\n";
-        type(menuText); // Usamos type aqui para o efeito no menu
+        type(menuText);
+    }
+
+    // --- PROCESSADOR DE COMANDOS ---
+
+    function handleInput() {
+        const command = input.value.trim().toLowerCase();
+        appendHtml(`<span class="comando-usuario">&gt; ${input.value}</span>\n`);
+        input.value = '';
+
+        // LÓGICA CORRIGIDA E SIMPLIFICADA
+        if (command.startsWith('abrir ')) {
+            const nomeCaso = command.split(' ')[1];
+            if (nomeCaso) {
+                carregarCaso(nomeCaso);
+            } else {
+                appendHtml("Comando 'abrir' incompleto. Especifique o nome do caso.\n");
+            }
+        } else if (estadoJogo.casoAtual && !estadoJogo.processando) {
+            // Se um caso está ativo, qualquer "Enter" avança a cena
+            processarCena();
+        } else {
+            // Se nenhum caso está ativo e o comando não é 'abrir', mostra o menu
+            exibirMenu();
+        }
     }
 
     input.addEventListener('keydown', (e) => {
@@ -133,5 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- INÍCIO DO JOGO ---
     exibirMenu();
 });
